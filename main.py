@@ -22,58 +22,56 @@ class AlgorithmPlotter:
 
         # Embed the matplotlib figure in the tkinter window
         self.canvas = FigureCanvasTkAgg(self.fig, master=root)
-        self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+        self.canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=1)
 
-        algo_frame = tk.Frame(root)
-        algo_frame.pack(side=tk.TOP, pady=10)
-        tk.Label(algo_frame, text="Algorithm:").pack(side=tk.LEFT, padx=5)
-        self.algo_selection = ttk.Combobox(algo_frame, values=self.algorithm_names, state="readonly")
+        # Create input fields and organize them in a grid layout
+        input_frame = tk.Frame(root)
+        input_frame.pack(side=tk.TOP, pady=10, anchor="w")  # Left-align the frame
+
+        # Algorithm selection
+        tk.Label(input_frame, text="Algorithm:").grid(row=0, column=0, padx=5, sticky="w")
+        self.algo_selection = ttk.Combobox(input_frame, values=self.algorithm_names, state="readonly", width=15)
         self.algo_selection.set(self.current_algorithm)
-        self.algo_selection.pack(side=tk.LEFT, padx=5)
+        self.algo_selection.grid(row=0, column=1, padx=5, sticky="w")
         self.algo_selection.bind("<<ComboboxSelected>>", self.select_algorithm)
 
-        # Create input fields for sequence and head
-        input_frame = tk.Frame(root)
-        input_frame.pack(side=tk.TOP, pady=10)
-
-        tk.Label(input_frame, text="Sequence (comma-separated):").grid(row=0, column=0, padx=5)
+        # Sequence input
+        tk.Label(input_frame, text="Sequence:").grid(row=0, column=2, padx=5, sticky="w")
         self.sequence_entry = ttk.Combobox(input_frame, width=30, state="normal")
-        self.sequence_entry.grid(row=0, column=1, padx=5)
+        self.sequence_entry.grid(row=0, column=3, columnspan=4, padx=5, pady=5, sticky="w")
         self.sequence_entry.bind("<KeyRelease>", self.update_suggestions)
 
-        tk.Label(input_frame, text="Head:").grid(row=1, column=0, padx=5)
-        self.head_entry = tk.Entry(input_frame, width=10)
-        self.head_entry.grid(row=1, column=1, padx=5)
+        # Random sequence generation
+        self.random_button = tk.Button(input_frame, text="Random", command=self.generate_random_sequence)
+        self.random_button.grid(row=0, column=8, padx=5, pady=5, sticky="w")
 
-        tk.Label(input_frame, text="Disk size:").grid(row=2, column=0, padx=5)
+        tk.Label(input_frame, text="Sequence size:").grid(row=0, column=6, padx=5, sticky="w")
+        self.sequence_size_entry = tk.Entry(input_frame, width=10)
+        self.sequence_size_entry.grid(row=0, column=7, padx=5, sticky="w")
+
+        # Direction selection
+        tk.Label(input_frame, text="Direction:").grid(row=1, column=0, padx=5, sticky="w")
+        self.directions = ttk.Combobox(input_frame, values=['Left', 'Right'], state='readonly', width=10)
+        self.directions.set('Left')
+        self.directions.grid(row=1, column=1, padx=5, sticky="w")
+
+        # Head input
+        tk.Label(input_frame, text="Head:").grid(row=1, column=2, padx=5, sticky="w")
+        self.head_entry = tk.Entry(input_frame, width=10)
+        self.head_entry.grid(row=1, column=3, padx=5, sticky="w")
+
+        # Disk size input
+        tk.Label(input_frame, text="Disk size:").grid(row=1, column=4, padx=5, sticky="w")
         self.size_entry = tk.Entry(input_frame, width=10)
         self.size_entry.insert(0, "200")
-        self.size_entry.grid(row=2, column=1, padx=5)
-
-        # Add input for sequence size and a button to generate random sequence
-        tk.Label(input_frame, text="Sequence size:").grid(row=3, column=0, padx=5)
-        self.sequence_size_entry = tk.Entry(input_frame, width=10)
-        self.sequence_size_entry.grid(row=3, column=1, padx=5)
-
-        self.random_button = tk.Button(input_frame, text="Generate Random Sequence", command=self.generate_random_sequence)
-        self.random_button.grid(row=3, column=2, padx=5)
-
-        # Set x-axis limits to start at 0 and end at disk_size - 1
-        self.ax.set_xlim(0, int(self.size_entry.get()) - 1)
-
-        direction_frame = tk.Frame(root)
-        direction_frame.pack(side=tk.TOP, pady=10)
-        tk.Label(direction_frame, text="Direction:").pack(side=tk.LEFT, padx=5)
-        self.directions = ttk.Combobox(direction_frame, values=['Left', 'Right'], state='readonly')
-        self.directions.set('Left')
-        self.directions.pack(side=tk.LEFT, padx=5)
+        self.size_entry.grid(row=1, column=5, padx=5, sticky="w")
 
         # Add a button to compute and plot
         self.compute_button = tk.Button(root, text="Compute and Plot", command=self.compute_and_plot)
         self.compute_button.pack(side=tk.TOP, pady=10)
 
         # Add a label to display the distance below the graph
-        self.distance_label = tk.Label(root, text="Distance: ", font=("Arial", 12))
+        self.distance_label = tk.Label(root, text="Distance: ", font=("Arial", 12), fg="green")
         self.distance_label.pack(side=tk.BOTTOM, pady=10)
 
         # Load sequences from file
