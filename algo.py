@@ -1,6 +1,6 @@
 from typing import List
 
-def FCFS(arr, head):
+def FCFS(arr, head, direction, disk_size):
  
     distance, memory = 0, [head]
     for cur_track in arr:
@@ -10,7 +10,7 @@ def FCFS(arr, head):
      
     return distance, memory
 
-def SSTF(arr, head):
+def SSTF(arr, head, direction, disk_size):
     def calculateDifference(queue, head, diff):
         for i in range(len(diff)):
             diff[i][0] = abs(queue[i] - head)
@@ -44,20 +44,15 @@ def SSTF(arr, head):
     memory[-1] = head
     return distance, memory
 
-def SCAN(arr, head, direction):
-
-    seek_count = 0
+def SCAN(arr, head, direction, disk_size):
+    size = len(arr)
     distance, cur_track = 0, 0
-    left = []
-    right = []
-    seek_sequence = []
+    left, right, memory = [], [], [head]
 
-    # Appending end values
-    # which has to be visited
-    # before reversing the direction
-    if (direction == "left"):
+    # Appending end values which has to be visited before reversing the direction
+    if (direction == "Left"):
         left.append(0)
-    elif (direction == "right"):
+    elif (direction == "Right"):
         right.append(disk_size - 1)
 
     for i in range(size):
@@ -71,79 +66,132 @@ def SCAN(arr, head, direction):
     right.sort()
 
     # Run the while loop two times.
-    # one by one scanning right
-    # and left of the head
+    # one by one scanning right and left of the head
     run = 2
     while (run != 0):
-        if (direction == "left"):
+        if (direction == "Left"):
             for i in range(len(left) - 1, -1, -1):
                 cur_track = left[i]
 
-                # Appending current track to 
-                # seek sequence
-                seek_sequence.append(cur_track)
+                # Appending current track to seek sequence
+                memory.append(cur_track)
 
-                # Calculate absolute distance
-                distance = abs(cur_track - head)
-
-                # Increase the total count
-                seek_count += distance
-
-                # Accessed track is now the new head
+                distance += abs(cur_track - head)
                 head = cur_track
             
-            direction = "right"
+            direction = "Right"
     
-        elif (direction == "right"):
+        elif (direction == "Right"):
             for i in range(len(right)):
                 cur_track = right[i]
                 
-                # Appending current track to seek 
-                # sequence
-                seek_sequence.append(cur_track)
+                # Appending current track to seek sequence
+                memory.append(cur_track)
 
-                # Calculate absolute distance
-                distance = abs(cur_track - head)
-
-                # Increase the total count
-                seek_count += distance
-
-                # Accessed track is now new head
+                distance += abs(cur_track - head)
                 head = cur_track
             
-            direction = "left"
+            direction = "Left"
         
         run -= 1
 
-    print("Total number of seek operations =", 
-          seek_count)
+    return distance, memory
 
-    print("Seek Sequence is")
-
-    for i in range(len(seek_sequence)):
-        print(seek_sequence[i])
-
-def SCAN(arr, head):
-    
+def CSCAN(arr, head, direction, disk_size):
+    size = len(arr)
     distance, memory = 0, [head]
+    cur_track = 0
+    left, right = [], []
+
+    left.append(0), right.append(disk_size - 1)
+
+    for i in range(size):
+        if (arr[i] < head):
+            left.append(arr[i])
+        elif (arr[i] > head):
+            right.append(arr[i])
+
+    left.sort(), right.sort()
+
+    for i in range(len(right)):
+        cur_track = right[i]
+        memory.append(cur_track)
+        distance += cur_track - head
+        head = cur_track
+    
+    head = 0
+    distance += (disk_size - 1)
+    for i in range(len(left)):
+        cur_track = left[i]
+        memory.append(cur_track)
+        distance += cur_track - head
+        head = cur_track
+    
+    return distance, memory
+
+def LOOK(arr, head, direction, disk_size):
+    size = len(arr)
+    distance, memory = 0, [head]
+    cur_track = 0
+    left, right = [], []
+
+    for i in range(size):
+        if arr[i] < head:
+            left.append(arr[i])
+        elif arr[i] > head:
+            right.append(arr[i])
+    
+    left.sort(), right.sort()
+
+    run = 2
+    while run:
+        if direction == 'Left':
+            for i in range(len(left) - 1, -1, -1):
+                cur_track = left[i]
+                memory.append(cur_track)
+                distance += head - cur_track
+                head = cur_track
+            direction = 'Right'
+        elif direction == 'Right':
+            for i in range(len(right)):
+                cur_track = right[i]
+                memory.append(cur_track)
+                distance += cur_track - head
+                head = cur_track
+            direction = 'Left'
+        
+        run -= 1
 
     return distance, memory
 
-def CSCAN(arr, head):
-    
+def CLOOK(arr, head, direction, disk_size):
+    size = len(arr)
     distance, memory = 0, [head]
+    cur_track = 0
+    left, right = [], []
 
-    return distance, memory
-
-def LOOK(arr, head):
+    for i in range(size):
+        if arr[i] < head:
+            left.append(arr[i])
+        elif arr[i] > head:
+            right.append(arr[i])
     
-    distance, memory = 0, [head]
+    left.sort(), right.sort()
 
-    return distance, memory
-
-def CLOOK(arr, head):
+    for i in range(len(right)):
+        cur_track = right[i]
+        memory.append(cur_track)
+        distance += cur_track - head
+        head = cur_track
     
-    distance, memory = 0, [head]
+    if left:
+        distance += abs(head - left[0])
+        head = left[0]
+        for i in range(len(left)):
+            cur_track = left[i]
+            memory.append(cur_track)
+            distance += abs(cur_track - head)
+            head = cur_track
 
     return distance, memory
 
