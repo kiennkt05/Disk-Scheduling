@@ -15,10 +15,11 @@ class AlgorithmPlotter:
         # Create a larger matplotlib figure
         self.fig, self.ax = plt.subplots(figsize=(10, 6))
         self.ax.set_xlabel("Cylinder Number", labelpad=15)
-        self.ax.set_ylabel("Step")
         self.ax.xaxis.set_label_position('top')
         self.ax.xaxis.tick_top()
         self.ax.invert_yaxis()
+        self.ax.set_xticklabels([])
+        self.ax.set_yticklabels([])
 
         # Embed the matplotlib figure in the tkinter window
         self.canvas = FigureCanvasTkAgg(self.fig, master=root)
@@ -39,7 +40,6 @@ class AlgorithmPlotter:
         tk.Label(input_frame, text="Sequence:").grid(row=0, column=2, padx=5, sticky="w")
         self.sequence_entry = ttk.Combobox(input_frame, width=30, state="normal")
         self.sequence_entry.grid(row=0, column=3, columnspan=4, padx=5, pady=5, sticky="w")
-        self.sequence_entry.bind("<KeyRelease>", self.update_suggestions)
 
         # Random sequence generation
         self.random_button = tk.Button(input_frame, text="Random", command=self.generate_random_sequence)
@@ -85,11 +85,6 @@ class AlgorithmPlotter:
         except FileNotFoundError:
             return []
 
-    def update_suggestions(self, event):
-        typed_text = self.sequence_entry.get()
-        suggestions = [seq for seq in self.sequences if seq.startswith(typed_text)]
-        self.sequence_entry['values'] = suggestions  # Update dropdown values
-
     def select_algorithm(self, event):
         self.current_algorithm = self.algo_selection.get()
 
@@ -113,9 +108,9 @@ class AlgorithmPlotter:
         head = self.head_entry.get()
 
         try:
-            sequence = list(map(int, sequence.split(',')))
             if sequence not in self.sequences:
                 self.update_sequences('sequences.txt', self.sequence_entry.get())
+            sequence = list(map(int, sequence.split(',')))
             head = int(head)
             direction = self.directions.get()
             disk_size = int(self.size_entry.get())
@@ -134,8 +129,8 @@ class AlgorithmPlotter:
     def update_sequences(self, file_path, new_sequence):
         try:
             with open(file_path, 'w') as file:
-                self.sequences.append(new_sequence)  # Add the new sequence to the bottom of the list
-                file.write('\n'.join(self.sequences))  # Write all sequences back to the file
+                self.sequences.append(new_sequence)
+                file.write('\n'.join(self.sequences))
         except Exception as e:
             print(f"An error occurred while updating sequences: {e}")
 
@@ -146,6 +141,9 @@ class AlgorithmPlotter:
         self.ax.plot(memory, steps, marker='o', label=algorithm_name)
         self.ax.set_xticks(memory)
         self.ax.set_xticklabels(memory, rotation=45, fontsize=8)
+        self.ax.set_yticks(steps)
+        self.ax.set_yticklabels(steps, fontsize=8)
+
 
         self.ax.set_title(f"Disk Scheduling: {algorithm_name}")
         self.ax.set_xlabel("Cylinder Number", labelpad=15)

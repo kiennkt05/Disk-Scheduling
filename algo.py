@@ -11,37 +11,35 @@ def FCFS(arr, head, direction, disk_size):
     return distance, memory
 
 def SSTF(arr, head, direction, disk_size):
-    def calculateDifference(queue, head, diff):
-        for i in range(len(diff)):
-            diff[i][0] = abs(queue[i] - head)
-    
-    def findMin(diff):
-        index = -1
-        minimum = 999999999
-        for i in range(len(diff)):
-            if (not diff[i][1] and minimum > diff[i][0]):
-                minimum = diff[i][0]
-                index = i
-        return index
+    arr.append(head)  # Add the head to the array
+    arr.sort()  # Sort the array
+    head_index = arr.index(head)  # Locate the head in the sorted array
 
-    if len(arr) == 0:
-        return
-    
-    diff = [0] * len(arr)
+    visited = [False] * len(arr)  # Track visited elements
+    visited[head_index] = True  # Mark the head as visited
 
-    for i in range(len(arr)):
-        diff[i] = [0,0]
+    distance = 0
+    memory = [head]
+    left, right = head_index - 1, head_index + 1  # Initialize pointers for left and right neighbors
 
-    distance, memory = 0, [0] * (len(arr) + 1)
-    for i in range(len(arr)):
-        memory[i] = head
-        calculateDifference(arr, head, diff)
-        index = findMin(diff)
+    for _ in range(len(arr) - 1):  # Iterate through all tracks except the head
+        left_distance = abs(arr[left] - head) if left >= 0 and not visited[left] else float('inf')
+        right_distance = abs(arr[right] - head) if right < len(arr) and not visited[right] else float('inf')
 
-        diff[index][1] = True
-        distance += diff[index][0]
-        head = arr[index]
-    memory[-1] = head
+        # Choose the closest unvisited track
+        if left_distance < right_distance:
+            distance += left_distance
+            head = arr[left]
+            memory.append(head)
+            visited[left] = True
+            left -= 1
+        else:
+            distance += right_distance
+            head = arr[right]
+            memory.append(head)
+            visited[right] = True
+            right += 1
+
     return distance, memory
 
 def SCAN(arr, head, direction, disk_size):
@@ -49,7 +47,6 @@ def SCAN(arr, head, direction, disk_size):
     distance, cur_track = 0, 0
     left, right, memory = [], [], [head]
 
-    # Appending end values which has to be visited before reversing the direction
     if (direction == "Left"):
         left.append(0)
     elif (direction == "Right"):
@@ -60,13 +57,9 @@ def SCAN(arr, head, direction, disk_size):
             left.append(arr[i])
         if (arr[i] > head):
             right.append(arr[i])
-
-    # Sorting left and right vectors
     left.sort()
     right.sort()
 
-    # Run the while loop two times.
-    # one by one scanning right and left of the head
     run = 2
     while (run != 0):
         if (direction == "Left"):
@@ -104,29 +97,49 @@ def CSCAN(arr, head, direction, disk_size):
     left, right = [], []
 
     left.append(0), right.append(disk_size - 1)
-
     for i in range(size):
-        if (arr[i] < head):
+        if arr[i] < head:
             left.append(arr[i])
-        elif (arr[i] > head):
+        elif arr[i] > head:
             right.append(arr[i])
-
     left.sort(), right.sort()
 
-    for i in range(len(right)):
-        cur_track = right[i]
-        memory.append(cur_track)
-        distance += cur_track - head
-        head = cur_track
-    
-    head = 0
-    distance += (disk_size - 1)
-    for i in range(len(left)):
-        cur_track = left[i]
-        memory.append(cur_track)
-        distance += cur_track - head
-        head = cur_track
-    
+    if direction == "Right":
+        # Move right, then jump to the leftmost and continue
+        for i in range(len(right)):
+            cur_track = right[i]
+            memory.append(cur_track)
+            distance += abs(cur_track - head)
+            head = cur_track
+
+        # Jump to the leftmost boundary
+        head = 0
+        distance += (disk_size - 1)
+
+        for i in range(len(left)):
+            cur_track = left[i]
+            memory.append(cur_track)
+            distance += abs(cur_track - head)
+            head = cur_track
+
+    elif direction == "Left":
+        # Move left, then jump to the rightmost and continue
+        for i in range(len(left) - 1, -1, -1):
+            cur_track = left[i]
+            memory.append(cur_track)
+            distance += abs(cur_track - head)
+            head = cur_track
+
+        # Jump to the rightmost boundary
+        head = disk_size - 1
+        distance += (disk_size - 1)
+
+        for i in range(len(right) - 1, -1, -1):
+            cur_track = right[i]
+            memory.append(cur_track)
+            distance += abs(cur_track - head)
+            head = cur_track
+
     return distance, memory
 
 def LOOK(arr, head, direction, disk_size):
@@ -140,7 +153,6 @@ def LOOK(arr, head, direction, disk_size):
             left.append(arr[i])
         elif arr[i] > head:
             right.append(arr[i])
-    
     left.sort(), right.sort()
 
     run = 2
@@ -175,23 +187,45 @@ def CLOOK(arr, head, direction, disk_size):
             left.append(arr[i])
         elif arr[i] > head:
             right.append(arr[i])
-    
     left.sort(), right.sort()
 
-    for i in range(len(right)):
-        cur_track = right[i]
-        memory.append(cur_track)
-        distance += cur_track - head
-        head = cur_track
-    
-    if left:
-        distance += abs(head - left[0])
-        head = left[0]
-        for i in range(len(left)):
+    if direction == "Right":
+        # Move right, then jump to the leftmost request and continue
+        for i in range(len(right)):
+            cur_track = right[i]
+            memory.append(cur_track)
+            distance += abs(cur_track - head)
+            head = cur_track
+
+        if left:
+            # Jump to the leftmost request
+            distance += abs(head - left[0])
+            head = left[0]
+
+            for i in range(len(left)):
+                cur_track = left[i]
+                memory.append(cur_track)
+                distance += abs(cur_track - head)
+                head = cur_track
+
+    elif direction == "Left":
+        # Move left, then jump to the rightmost request and continue
+        for i in range(len(left) - 1, -1, -1):
             cur_track = left[i]
             memory.append(cur_track)
             distance += abs(cur_track - head)
             head = cur_track
+
+        if right:
+            # Jump to the rightmost request
+            distance += abs(head - right[-1])
+            head = right[-1]
+
+            for i in range(len(right) - 1, -1, -1):
+                cur_track = right[i]
+                memory.append(cur_track)
+                distance += abs(cur_track - head)
+                head = cur_track
 
     return distance, memory
 
